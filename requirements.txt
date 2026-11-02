@@ -2,4 +2,4 @@ curl_cffi
 typer
 rich
 customtkinter
-holodori-asset-tools>=1.1.0
+holodori-asset-tools>=1.1.1

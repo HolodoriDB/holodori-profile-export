@@ -60,7 +60,9 @@ def _messages() -> dict[str, dict[str, int]]:
             fm = _FIELD.match(line)
             if not fm:
                 continue
-            for kind, name in reversed(stack):  # a field belongs to its message, not an extend
+            for kind, name in reversed(
+                stack
+            ):  # a field belongs to its message, not an extend
                 if kind == "extend":
                     break
                 if kind == "message":

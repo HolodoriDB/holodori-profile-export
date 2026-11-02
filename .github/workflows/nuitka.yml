@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            upx: --enable-plugin=upx
+            upx: --enable-plugin=upx --onefile-no-compression
           - os: ubuntu-latest
             upx: ""
           - os: macos-latest

@@ -13,7 +13,11 @@ def _submsg(ud: dict[int, list], field: int) -> dict[int, list]:
 
 
 def _strs(d: dict[int, list], field: int) -> list[str]:
-    return [v.decode("utf-8", "replace") for v in proto.get_list(d, field) if isinstance(v, (bytes, bytearray))]
+    return [
+        v.decode("utf-8", "replace")
+        for v in proto.get_list(d, field)
+        if isinstance(v, (bytes, bytearray))
+    ]
 
 
 def parse_userdata(ud: dict[int, list]) -> dict:
@@ -31,7 +35,9 @@ def parse_userdata(ud: dict[int, list]) -> dict:
                     "id": cid,
                     "exp": proto.get_int(c, f("UserCard", "exp")),
                     "bloom": proto.get_int(c, f("UserCard", "level_limit_break_count")),
-                    "potential": proto.get_int(c, f("UserCard", "potential_upgrade_count")),
+                    "potential": proto.get_int(
+                        c, f("UserCard", "potential_upgrade_count")
+                    ),
                 }
             )
 
@@ -46,7 +52,9 @@ def parse_userdata(ud: dict[int, list]) -> dict:
         ch = proto.decode(raw)
         cid = proto.get_str(ch, f("UserCharacter", "character_id"))
         if cid:
-            holomems.append({"id": cid, "exp": proto.get_int(ch, f("UserCharacter", "exp"))})
+            holomems.append(
+                {"id": cid, "exp": proto.get_int(ch, f("UserCharacter", "exp"))}
+            )
 
     boards = []
     for raw in proto.get_list(ud, f("UserData", "user_character_skill_tree_list")):
@@ -57,9 +65,18 @@ def parse_userdata(ud: dict[int, list]) -> dict:
         boards.append(
             {
                 "character": cid,
-                "nodes": _strs(st, f("UserCharacterSkillTree", "released_skill_tree_node_group_ids")),
-                "connectedNodes": _strs(st, f("UserCharacterSkillTree", "connected_skill_tree_node_group_ids")),
-                "connectedCards": _strs(st, f("UserCharacterSkillTree", "connected_skill_tree_node_card_ids")),
+                "nodes": _strs(
+                    st,
+                    f("UserCharacterSkillTree", "released_skill_tree_node_group_ids"),
+                ),
+                "connectedNodes": _strs(
+                    st,
+                    f("UserCharacterSkillTree", "connected_skill_tree_node_group_ids"),
+                ),
+                "connectedCards": _strs(
+                    st,
+                    f("UserCharacterSkillTree", "connected_skill_tree_node_card_ids"),
+                ),
             }
         )
 
@@ -70,13 +87,23 @@ def parse_userdata(ud: dict[int, list]) -> dict:
         and (qid := proto.get_str(q, f("UserParkQuest", "park_quest_id")))
     ]
     treasures = _strs(
-        _submsg(ud, f("UserData", "user_park_treasure")), f("UserParkTreasure", "park_treasure_ids")
+        _submsg(ud, f("UserData", "user_park_treasure")),
+        f("UserParkTreasure", "park_treasure_ids"),
     )
     free_chats = [
         tid
-        for raw in proto.get_list(ud, f("UserData", "user_park_talk_free_pick_result_detail_list"))
-        if _strs((d := proto.decode(raw)), f("UserParkTalkFreePickResultDetail", "already_read_character_ids"))
-        and (tid := proto.get_str(d, f("UserParkTalkFreePickResultDetail", "park_talk_free_id")))
+        for raw in proto.get_list(
+            ud, f("UserData", "user_park_talk_free_pick_result_detail_list")
+        )
+        if _strs(
+            (d := proto.decode(raw)),
+            f("UserParkTalkFreePickResultDetail", "already_read_character_ids"),
+        )
+        and (
+            tid := proto.get_str(
+                d, f("UserParkTalkFreePickResultDetail", "park_talk_free_id")
+            )
+        )
     ]
 
     return {
@@ -97,7 +124,12 @@ def parse_userdata(ud: dict[int, list]) -> dict:
 
 def build(ud: dict[int, list], region_code: str) -> dict:
     parsed = parse_userdata(ud)
-    return {"format": HDBEST_FORMAT, "version": HDBEST_VERSION, "region": region_code, **parsed}
+    return {
+        "format": HDBEST_FORMAT,
+        "version": HDBEST_VERSION,
+        "region": region_code,
+        **parsed,
+    }
 
 
 def write(obj: dict, out_dir: str | Path = ".") -> Path:
@@ -105,6 +137,8 @@ def write(obj: dict, out_dir: str | Path = ".") -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     name = (obj.get("publicUserId") or "profile").strip() or "profile"
     dest = out_dir / f"{name}.hdbest"
-    gz = gzip.compress(json.dumps(obj, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+    gz = gzip.compress(
+        json.dumps(obj, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    )
     dest.write_bytes(gz)
     return dest

@@ -79,6 +79,14 @@ class Ui:
         except EOFError:
             fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
 
+    def choose(self, question: str, choices: list[str], flag: str) -> str:
+        if not self.interactive:
+            fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
+        try:
+            return Prompt.ask(question, console=self.err, choices=choices)
+        except EOFError:
+            fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
+
     def confirm(self, question: str, default: bool) -> bool:
         if not self.interactive:
             return True
@@ -173,7 +181,9 @@ app = typer.Typer(
 @app.callback(invoke_without_command=True)
 def main(
     source: Annotated[Source, typer.Option("--source", "-s", help=text.OPT_SOURCE)],
-    region: Annotated[str, typer.Option("--region", "-r", help=text.OPT_REGION)] = "us",
+    region: Annotated[
+        Optional[str], typer.Option("--region", "-r", help=text.OPT_REGION)
+    ] = None,
     out: Annotated[str, typer.Option("--out", "-o", help=text.OPT_OUT)] = ".",
     migration_id: Annotated[
         Optional[str], typer.Option("--migration-id", help=text.OPT_MIGRATION_ID)
@@ -201,7 +211,8 @@ def main(
             ui.print(text.MITM_INSTRUCTIONS)
             return
 
-        with GameClient(region) as client:
+        reg = region or ui.choose(text.ASK_REGION, ["us", "as", "jp"], "--region")
+        with GameClient(reg) as client:
             if source is Source.steam:
                 obj, dest = steam_source.run(client, out, echo=ui.status)
             elif source is Source.credential:

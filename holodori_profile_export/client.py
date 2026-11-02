@@ -164,7 +164,9 @@ class GameClient:
         # exempt, so fetch the current version from it once (no auth, empty request) and reuse it.
         if self.master_version is None:
             resp = self.call(MASTER_GET)
-            self.master_version = proto.get_str(resp, schema.field("MasterGetResponse", "version"))
+            self.master_version = proto.get_str(
+                resp, schema.field("MasterGetResponse", "version")
+            )
 
     def user_get(self, token: str) -> dict[int, list]:
         self.ensure_master_version()
