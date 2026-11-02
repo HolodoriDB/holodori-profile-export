@@ -15,11 +15,14 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            upx: --enable-plugin=upx --onefile-no-compression
+            suffix: windows
+            pkg: --onefile --windows-console-mode=attach --enable-plugin=upx --onefile-no-compression
           - os: ubuntu-latest
-            upx: ""
+            suffix: linux
+            pkg: --onefile
           - os: macos-latest
-            upx: ""
+            suffix: macos
+            pkg: --standalone --macos-create-app-bundle
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -43,17 +46,17 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install upx -y
 
-      - name: Build (Nuitka onefile)
+      - name: Build (Nuitka)
         run: >
           python -m nuitka
-          --onefile
           --lto=yes
           --python-flag=-O
-          ${{ matrix.upx }}
+          --remove-output
+          ${{ matrix.pkg }}
           --assume-yes-for-downloads
           --enable-plugin=tk-inter
           --output-dir=dist
-          --output-filename=holodori-profile-export
+          --output-filename=holodori-profile-export-${{ matrix.suffix }}
           --include-package=holodori_profile_export
           --include-package-data=holodori_profile_export
           --include-package-data=curl_cffi
