@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 from typing import Annotated, Any, NoReturn, Optional
@@ -44,6 +45,19 @@ def fail(message: str, code: Code) -> NoReturn:
     raise CliError(message, code)
 
 
+def _is_link_id(v: str) -> bool:
+    return len(v) == 8
+
+
+def _is_password(v: str) -> bool:
+    return 8 <= len(v) <= 16
+
+
+def require(value: str, ok: Callable[[str], bool], error: str) -> None:
+    if not ok(value):
+        fail(error, Code.USAGE)
+
+
 @dataclass
 class Ui:
     json: bool = False
@@ -71,13 +85,27 @@ class Ui:
         if self.json:
             print(json.dumps(data, ensure_ascii=False, indent=2))
 
-    def ask(self, question: str, flag: str, *, password: bool = False) -> str:
+    def ask(
+        self,
+        question: str,
+        flag: str,
+        *,
+        password: bool = False,
+        ok: Callable[[str], bool] | None = None,
+        error: str = "",
+    ) -> str:
         if not self.interactive:
             fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
-        try:
-            return Prompt.ask(question, console=self.err, password=password).strip()
-        except EOFError:
-            fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
+        while True:
+            try:
+                answer = Prompt.ask(
+                    question, console=self.err, password=password
+                ).strip()
+            except EOFError:
+                fail(text.ERR_NEED.format(flag=flag), Code.USAGE)
+            if ok is None or ok(answer):
+                return answer
+            self.err.print(f"[red]{escape(error)}[/]")
 
     def choose(self, question: str, choices: list[str], flag: str) -> str:
         if not self.interactive:
@@ -221,10 +249,27 @@ def main(
                 )
                 obj, dest = credential_source.run(client, cred, out, echo=ui.status)
             else:
-                mig = migration_id or ui.ask(text.ASK_TRANSFER_ID, "--migration-id")
-                pwd = password or ui.ask(
-                    text.ASK_TRANSFER_PASSWORD, "--password", password=True
-                )
+                if migration_id is None:
+                    mig = ui.ask(
+                        text.ASK_TRANSFER_ID,
+                        "--migration-id",
+                        ok=_is_link_id,
+                        error=text.ERR_BAD_LINK_ID,
+                    )
+                else:
+                    require(migration_id, _is_link_id, text.ERR_BAD_LINK_ID)
+                    mig = migration_id
+                if password is None:
+                    pwd = ui.ask(
+                        text.ASK_TRANSFER_PASSWORD,
+                        "--password",
+                        password=True,
+                        ok=_is_password,
+                        error=text.ERR_BAD_PASSWORD,
+                    )
+                else:
+                    require(password, _is_password, text.ERR_BAD_PASSWORD)
+                    pwd = password
                 if not ui.confirm(text.CONFIRM_TRANSFER, True):
                     fail(text.ERR_ABORTED, Code.ABORTED)
                 obj, dest = transfer_source.run(client, mig, pwd, out, echo=ui.status)

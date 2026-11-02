@@ -42,6 +42,8 @@ ERR_UNEXPECTED = "unexpected error:"
 ERR_ABORTED = "aborted"
 ERR_NEED = "missing {flag}."
 ERR_TRANSFER_REJECTED = "transfer id or password is wrong."
+ERR_BAD_LINK_ID = "transfer id must be 8 characters."
+ERR_BAD_PASSWORD = "transfer password must be 8-16 characters."
 ERR_SCHEMA_DOWNLOAD = "couldn't download the proto schema: {error}"
 ERR_SCHEMA_FIELD = (
     "the game's proto schema has no {message}.{field}; this tool is out of date."

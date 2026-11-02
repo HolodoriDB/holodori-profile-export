@@ -177,6 +177,14 @@ class App(ctk.CTk):
         ).pack(anchor="w", pady=(0, 14))
         self._mig = self._field(text.GUI_TRANSFER_FIELD_ID)
         self._pwd = self._field(text.GUI_TRANSFER_FIELD_PW, show="•")
+        self._xfer_err = ctk.CTkLabel(
+            self.body,
+            text="",
+            text_color=("#c0392b", "#ff6b5e"),
+            wraplength=480,
+            justify="left",
+        )
+        self._xfer_err.pack(anchor="w", pady=(6, 0))
         self._nav(
             back=self._step_source, next_text=text.GUI_BTN_START, next_cmd=self._run
         )
@@ -190,9 +198,13 @@ class App(ctk.CTk):
     def _run(self) -> None:
         mig = pwd = cred = ""
         if self.source == "transfer":
-            if not (self._mig.get().strip() and self._pwd.get()):
-                return
             mig, pwd = self._mig.get().strip(), self._pwd.get()
+            if len(mig) != 8:
+                self._xfer_err.configure(text=text.ERR_BAD_LINK_ID)
+                return
+            if not 8 <= len(pwd) <= 16:
+                self._xfer_err.configure(text=text.ERR_BAD_PASSWORD)
+                return
         elif self.source == "credential":
             if not self._cred.get().strip():
                 return

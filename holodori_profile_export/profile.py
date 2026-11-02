@@ -108,7 +108,6 @@ def parse_userdata(ud: dict[int, list]) -> dict:
 
     return {
         "publicUserId": proto.get_str(user, f("User", "public_user_id")),
-        "region": proto.get_int(user, f("User", "region")),
         "userName": proto.get_str(profile, f("UserProfile", "name")),
         "playerExp": proto.get_int(profile, f("UserProfile", "exp")),
         "cards": cards,
