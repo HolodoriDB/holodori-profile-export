@@ -28,6 +28,11 @@ jobs:
           python -m pip install nuitka
           python -m pip install -r requirements.txt
 
+      - name: Read version
+        id: ver
+        shell: bash
+        run: echo "version=$(python -c 'import holodori_profile_export as m; print(m.__version__)')" >> "$GITHUB_OUTPUT"
+
       - name: Build (Nuitka onefile)
         run: >
           python -m nuitka
@@ -42,8 +47,8 @@ jobs:
           --include-package-data=customtkinter
           --company-name=HolodoriDB
           --product-name=holodori-profile-export
-          --file-version=0.1.0
-          --product-version=0.1.0
+          --file-version=${{ steps.ver.outputs.version }}
+          --product-version=${{ steps.ver.outputs.version }}
           main.py
 
       - uses: actions/upload-artifact@v4

@@ -5,7 +5,7 @@ Export your **hololive Dreams** game account into a portable **`.hdbest` profile
 The profile file is an unencrypted gzipped json file.
 
 ## Usage (Release)
-Download the {latest release link here} and run the file.
+Download the [latest release](https://github.com/HolodoriDB/holodori-profile-export/releases/latest) and run the file.
 
 ## Usage (Python)
 Download the repository as a zip, then unzip it. Python 3.10+ is required (and should be in path).
