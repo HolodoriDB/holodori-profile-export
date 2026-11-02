@@ -30,5 +30,7 @@ def run(
     )
     ud = client.user_get(client.auth_login(credential))
     obj = profile.build(ud, client.region)
+    if not obj.get("publicUserId"):
+        obj["publicUserId"] = info["public_user_id"]
     dest = profile.write(obj, out_dir)
     return obj, dest

@@ -4,7 +4,7 @@ from curl_cffi import requests
 
 from holodori_asset_tools import api, catalog
 
-from . import proto, text
+from . import proto, schema, text
 
 AUTH_LOGIN = "rpc.api.Auth/Login"
 MIG_PREP_PASSWORD = "rpc.api.AccountMigration/PrepareMigrationPassword"
@@ -163,10 +163,11 @@ class GameClient:
         # data RPCs (User/Get, Home/Login) are gated on x-app-master-version; Master/Get itself is
         # exempt, so fetch the current version from it once (no auth, empty request) and reuse it.
         if self.master_version is None:
-            self.master_version = proto.get_str(self.call(MASTER_GET), 1)
+            resp = self.call(MASTER_GET)
+            self.master_version = proto.get_str(resp, schema.field("MasterGetResponse", "version"))
 
     def user_get(self, token: str) -> dict[int, list]:
         self.ensure_master_version()
         resp = self.call(USER_GET, token=token)
-        ud = proto.get(resp, 1)
+        ud = proto.get(resp, schema.field("UserGetResponse", "user_data"))
         return proto.decode(ud) if isinstance(ud, (bytes, bytearray)) else {}

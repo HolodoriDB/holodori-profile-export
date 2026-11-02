@@ -41,6 +41,8 @@ ERR_UNEXPECTED = "unexpected error:"
 ERR_ABORTED = "aborted"
 ERR_NEED = "missing {flag}."
 ERR_TRANSFER_REJECTED = "transfer id or password is wrong."
+ERR_SCHEMA_DOWNLOAD = "couldn't download the proto schema: {error}"
+ERR_SCHEMA_FIELD = "the game's proto schema has no {message}.{field}; this tool is out of date."
 ERR_STEAM_NO_FOLDER = "game data folder not found at {root}. Launch hololive Dreams on this PC and log in first."
 ERR_STEAM_NO_FILE = (
     "no account credential (DC*) file in {root}. Launch the game and log in first."
