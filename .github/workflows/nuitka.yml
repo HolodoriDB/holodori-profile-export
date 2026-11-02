@@ -19,7 +19,7 @@ jobs:
             pkg: --onefile --windows-console-mode=attach --enable-plugin=upx --onefile-no-compression
           - os: ubuntu-latest
             suffix: linux
-            pkg: --onefile
+            pkg: --onefile --enable-plugin=upx --onefile-no-compression
           - os: macos-latest
             suffix: macos
             pkg: --standalone --macos-create-app-bundle --macos-app-name=holodori-profile-export
@@ -45,6 +45,10 @@ jobs:
       - name: Install UPX (Windows)
         if: runner.os == 'Windows'
         run: choco install upx -y
+
+      - name: Install UPX (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y upx-ucl
 
       - name: Build (Nuitka)
         run: >
