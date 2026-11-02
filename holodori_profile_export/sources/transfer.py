@@ -29,6 +29,6 @@ def run(
         info["public_user_id"], info["one_time_token"]
     )
     ud = client.user_get(client.auth_login(credential))
-    obj = profile.build(ud, client.region)
+    obj = profile.build(ud)
     dest = profile.write(obj, out_dir)
     return obj, dest

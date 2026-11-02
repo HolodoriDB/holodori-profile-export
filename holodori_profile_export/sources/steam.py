@@ -38,6 +38,6 @@ def run(
     cred = read_credential()
     echo(text.STATUS_STEAM_LOGIN)
     ud = client.user_get(client.auth_login(cred))
-    obj = profile.build(ud, client.region)
+    obj = profile.build(ud)
     dest = profile.write(obj, out_dir)
     return obj, dest

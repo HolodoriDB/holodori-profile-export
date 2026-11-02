@@ -13,7 +13,7 @@ from rich.markup import escape
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from . import __version__, text
+from . import __version__, profile, text
 from .client import GameClient, GameError
 from .sources import credential as credential_source
 from .sources import steam as steam_source
@@ -124,7 +124,7 @@ class Ui:
             return default
 
 
-def result_table(obj: dict) -> Table:
+def result_table(counts: dict, region: str) -> Table:
     table = Table(
         title=text.RESULT_TITLE,
         box=box.ROUNDED,
@@ -133,17 +133,18 @@ def result_table(obj: dict) -> Table:
     )
     table.add_column(style="bold cyan")
     table.add_column()
-    table.add_row(text.ROW_ACCOUNT, escape(obj.get("userName") or "?"))
-    table.add_row(text.ROW_PUBLIC_ID, escape(obj.get("publicUserId") or "?"))
-    table.add_row(text.ROW_REGION, escape(str(obj.get("region"))))
-    table.add_row(text.ROW_CARDS, str(len(obj.get("cards", []))))
-    table.add_row(text.ROW_SONGS, str(len(obj.get("songs", []))))
-    table.add_row(text.ROW_HOLOMEMS, str(len(obj.get("holomems", []))))
+    table.add_row(text.ROW_ACCOUNT, escape(counts["userName"] or "?"))
+    table.add_row(text.ROW_PUBLIC_ID, escape(counts["publicUserId"] or "?"))
+    table.add_row(text.ROW_REGION, escape(region))
+    table.add_row(text.ROW_CARDS, str(counts["cards"]))
+    table.add_row(text.ROW_SONGS, str(counts["songs"]))
+    table.add_row(text.ROW_HOLOMEMS, str(counts["holomems"]))
     return table
 
 
-def show_result(ui: Ui, obj: dict, dest: str, source: str) -> None:
-    ui.print(result_table(obj))
+def show_result(ui: Ui, obj: dict, dest: str, source: str, region: str) -> None:
+    counts = profile.summary(obj)
+    ui.print(result_table(counts, region))
     ui.print(f"[green]done[/] {escape(text.RESULT_DONE.format(dest=dest))}")
     if source == "transfer":
         ui.status(text.TRANSFER_NOTE)
@@ -152,12 +153,8 @@ def show_result(ui: Ui, obj: dict, dest: str, source: str) -> None:
         {
             "dest": str(dest),
             "source": source,
-            "region": obj.get("region"),
-            "publicUserId": obj.get("publicUserId"),
-            "userName": obj.get("userName"),
-            "cards": len(obj.get("cards", [])),
-            "songs": len(obj.get("songs", [])),
-            "holomems": len(obj.get("holomems", [])),
+            "region": region,
+            **counts,
         }
     )
 
@@ -274,7 +271,7 @@ def main(
                     fail(text.ERR_ABORTED, Code.ABORTED)
                 obj, dest = transfer_source.run(client, mig, pwd, out, echo=ui.status)
 
-        show_result(ui, obj, str(dest), source.value)
+        show_result(ui, obj, str(dest), source.value, reg)
 
     handle(ui, body)
 

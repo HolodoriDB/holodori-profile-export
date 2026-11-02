@@ -15,6 +15,6 @@ def run(
 ) -> tuple[dict, Path]:
     echo(text.STATUS_CREDENTIAL_LOGIN)
     ud = client.user_get(client.auth_login(credential))
-    obj = profile.build(ud, client.region)
+    obj = profile.build(ud)
     dest = profile.write(obj, out_dir)
     return obj, dest
