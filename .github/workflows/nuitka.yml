@@ -22,7 +22,7 @@ jobs:
             pkg: --onefile
           - os: macos-latest
             suffix: macos
-            pkg: --standalone --macos-create-app-bundle
+            pkg: --standalone --macos-create-app-bundle --macos-app-name=holodori-profile-export
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +66,14 @@ jobs:
           --file-version=${{ steps.ver.outputs.version }}
           --product-version=${{ steps.ver.outputs.version }}
           main.py
+
+      - name: Normalize app name (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          app=$(ls -d dist/*.app | head -n1)
+          target=dist/holodori-profile-export-macos.app
+          [ "$app" = "$target" ] || mv "$app" "$target"
 
       - uses: actions/upload-artifact@v4
         with:
