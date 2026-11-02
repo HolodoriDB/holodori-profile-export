@@ -1,0 +1,51 @@
+name: nuitka build
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: nuitka-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install nuitka
+          python -m pip install -r requirements.txt
+
+      - name: Build (Nuitka onefile)
+        run: >
+          python -m nuitka
+          --onefile
+          --assume-yes-for-downloads
+          --enable-plugin=tk-inter
+          --output-dir=dist
+          --output-filename=holodori-profile-export
+          --include-package=holodori_profile_export
+          --include-package-data=holodori_profile_export
+          --include-package-data=curl_cffi
+          --include-package-data=customtkinter
+          --company-name=HolodoriDB
+          --product-name=holodori-profile-export
+          main.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: holodori-profile-export-${{ matrix.os }}
+          path: dist/holodori-profile-export*
+          if-no-files-found: error
