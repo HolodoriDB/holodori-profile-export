@@ -8,12 +8,14 @@ import os
 from holodori_asset_tools import api
 
 from .. import profile, proto, text
+from ..client import require_asset_tools
 
 _HOST = "game-hololive-dreams.com"
 
 
 class HdbestCapture:
     def __init__(self) -> None:
+        require_asset_tools()
         self.done = False
 
     def load(self, loader) -> None:  # mitmproxy hook

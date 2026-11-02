@@ -42,6 +42,11 @@ ERR_UNEXPECTED = "unexpected error:"
 ERR_ABORTED = "aborted"
 ERR_NEED = "missing {flag}."
 ERR_TRANSFER_REJECTED = "transfer id or password is wrong."
+ERR_NO_USER_DATA = "the server sent back no account data, so nothing was saved."
+ERR_OLD_ASSET_TOOLS = (
+    "holodori-asset-tools {version} is too old (need {need} or newer). "
+    "Run: pip install -U -r requirements.txt"
+)
 ERR_BAD_LINK_ID = "transfer id must be 8 characters."
 ERR_BAD_PASSWORD = "transfer password must be 8-16 characters."
 ERR_SCHEMA_DOWNLOAD = "couldn't download the proto schema: {error}"

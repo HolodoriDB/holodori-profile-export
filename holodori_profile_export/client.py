@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import re
+
+import holodori_asset_tools
 from curl_cffi import requests
 
 from holodori_asset_tools import api, catalog
 
 from . import proto, schema, text
+
+_MIN_ASSET_TOOLS = (1, 1, 1)
 
 AUTH_LOGIN = "rpc.api.Auth/Login"
 MIG_PREP_PASSWORD = "rpc.api.AccountMigration/PrepareMigrationPassword"
@@ -51,8 +56,19 @@ class GameError(RuntimeError):
     pass
 
 
+def require_asset_tools() -> None:
+    have = holodori_asset_tools.__version__
+    if tuple(int(x) for x in re.findall(r"\d+", have)[:3]) < _MIN_ASSET_TOOLS:
+        raise GameError(
+            text.ERR_OLD_ASSET_TOOLS.format(
+                version=have, need=".".join(map(str, _MIN_ASSET_TOOLS))
+            )
+        )
+
+
 class GameClient:
     def __init__(self, region: str = "us") -> None:
+        require_asset_tools()
         if region not in _REGION_LANG:
             raise ValueError(f"region must be one of {sorted(_REGION_LANG)}")
         self.region = region
@@ -171,5 +187,8 @@ class GameClient:
     def user_get(self, token: str) -> dict[int, list]:
         self.ensure_master_version()
         resp = self.call(USER_GET, token=token)
-        ud = proto.get(resp, schema.field("UserGetResponse", "user_data"))
-        return proto.decode(ud) if isinstance(ud, (bytes, bytearray)) else {}
+        raw = proto.get(resp, schema.field("UserGetResponse", "user_data"))
+        ud = proto.decode(raw) if isinstance(raw, (bytes, bytearray)) else {}
+        if schema.field("UserData", "user") not in ud:
+            raise GameError(text.ERR_NO_USER_DATA)
+        return ud
