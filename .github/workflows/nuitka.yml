@@ -13,7 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            upx: --enable-plugin=upx
+          - os: ubuntu-latest
+            upx: ""
+          - os: macos-latest
+            upx: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -33,10 +39,17 @@ jobs:
         shell: bash
         run: echo "version=$(python -c 'import holodori_profile_export as m; print(m.__version__)')" >> "$GITHUB_OUTPUT"
 
+      - name: Install UPX (Windows)
+        if: runner.os == 'Windows'
+        run: choco install upx -y
+
       - name: Build (Nuitka onefile)
         run: >
           python -m nuitka
           --onefile
+          --lto=yes
+          --python-flag=-O
+          ${{ matrix.upx }}
           --assume-yes-for-downloads
           --enable-plugin=tk-inter
           --output-dir=dist
